@@ -15,7 +15,7 @@ This directory is for reference audio files used for voice cloning with Chatterb
    - **Language**: Any language supported by the speaker
 
 3. **Select Cloned Voice**:
-   - In MoneyPrinterTurbo UI, select "Chatterbox TTS" as TTS server
+   - In FreeDarkStudio UI, select "Chatterbox TTS" as TTS server
    - Choose the cloned voice from the dropdown (named after your file)
    - The system will automatically use your reference audio for voice cloning
 
@@ -48,7 +48,7 @@ If voice cloning isn't working:
 1. Check file format is supported (.wav, .mp3, .flac, .m4a)
 2. Ensure audio is clear and contains speech
 3. Try shorter reference audio (10-30 seconds)
-4. Restart MoneyPrinterTurbo after adding new files
+4. Restart FreeDarkStudio after adding new files
 5. Check logs for any error messages
 
-For support, see the main MoneyPrinterTurbo documentation. 
+For support, see the main FreeDarkStudio documentation. 

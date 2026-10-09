@@ -109,6 +109,8 @@ def generate_subtitle(task_id, params, video_script, sub_maker, audio_file):
 
     # Check if Chatterbox TTS was used by examining the voice name
     is_chatterbox = voice.is_chatterbox_voice(params.voice_name)
+    if voice.is_supertonic_voice(params.voice_name):
+        subtitle_provider = "whisper"  # Supertonic3: legendas por transricao
     
     subtitle_fallback = False
     if subtitle_provider == "edge":

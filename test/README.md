@@ -1,6 +1,6 @@
-# MoneyPrinterTurbo Test Directory
+# FreeDarkStudio Test Directory
 
-This directory contains unit tests for the **MoneyPrinterTurbo** project.
+This directory contains unit tests for the **FreeDarkStudio** project.
 
 ## Directory Structure
 

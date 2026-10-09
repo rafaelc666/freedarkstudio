@@ -1,3 +1,4 @@
+import base64
 import os
 import platform
 import sys
@@ -27,16 +28,15 @@ from app.services import task as tm
 from app.utils import utils
 
 st.set_page_config(
-    page_title="MoneyPrinterTurbo",
-    page_icon="🤖",
+    page_title="FreeDarkStudio",
+    page_icon="\u2728",
     layout="wide",
     initial_sidebar_state="auto",
     menu_items={
-        "Report a bug": "https://github.com/harry0703/MoneyPrinterTurbo/issues",
-        "About": "# MoneyPrinterTurbo\nSimply provide a topic or keyword for a video, and it will "
-        "automatically generate the video copy, video materials, video subtitles, "
-        "and video background music before synthesizing a high-definition short "
-        "video.\n\nhttps://github.com/harry0703/MoneyPrinterTurbo",
+        "About": "# FreeDarkStudio V0.6\nEstúdio local de criação de vídeos curtos: "
+        "dê um tema, escolha os clipes (pasta do PC, Pexels ou Pixabay) e monte o vídeo "
+        "com narração Supertonic3, legendas automáticas e trilha. Gratuito e código "
+        "aberto (MIT).",
     },
 )
 
@@ -46,9 +46,250 @@ streamlit_style = """
 h1 {
     padding-top: 0 !important;
 }
+
+/* ════ FreeDarkStudio premium — 3 cores: preto base, vermelho ação, verde apoio ════ */
+
+/* ── Botões: hierarquia por tipo (primary=vermelho, secondary=verde, tertiary=ghost) ── */
+.stButton>button { border-radius:10px; font-weight:600; letter-spacing:.02em;
+                   transition:transform .16s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease; }
+/* vermelho = ação principal (Gerar vídeo) */
+.stButton>button[kind="primary"] {
+    background:linear-gradient(135deg,#ff3b3b 0%,#c81e1e 100%) !important;
+    border:2px solid #ff6a6a !important; color:#fff !important;
+    box-shadow:0 0 18px rgba(255,43,43,.45), inset 0 1px 0 rgba(255,255,255,.25) !important;
+    text-shadow:0 1px 2px rgba(0,0,0,.45); }
+.stButton>button[kind="primary"]:hover:not(:disabled) {
+    transform:translateY(-1px);
+    box-shadow:0 0 28px rgba(255,43,43,.8), inset 0 1px 0 rgba(255,255,255,.35) !important;
+    border-color:#ffb3b3 !important; }
+/* verde = ações de IA / apoio */
+.stButton>button[kind="secondary"] {
+    background:rgba(34,197,94,.10) !important;
+    border:2px solid rgba(34,197,94,.65) !important; color:#b9f6cd !important;
+    box-shadow:0 0 10px rgba(34,197,94,.18); }
+.stButton>button[kind="secondary"]:hover:not(:disabled) {
+    background:rgba(34,197,94,.24) !important; border-color:#22c55e !important; color:#eafff2 !important;
+    box-shadow:0 0 20px rgba(34,197,94,.55); transform:translateY(-1px); }
+/* preto fantasma = controles da linha do tempo e utilitários */
+.stButton>button[kind="tertiary"] {
+    background:rgba(10,10,12,.65) !important;
+    border:2px solid rgba(255,43,43,.35) !important; color:#d8d8dc !important; }
+.stButton>button[kind="tertiary"]:hover:not(:disabled) {
+    background:rgba(255,43,43,.14) !important; border-color:#ff2b2b !important; color:#fff !important;
+    box-shadow:0 0 12px rgba(255,43,43,.5); }
+.stButton>button:disabled { opacity:.32 !important; box-shadow:none !important; }
+.stButton>button:focus-visible { outline:none !important;
+    box-shadow:0 0 0 2px #0a0a0c, 0 0 0 4px #22c55e !important; }
+
+/* ── Campos de texto SEMPRE visíveis (caixa com borda, nunca invisível) ── */
+[data-baseweb="input"], [data-baseweb="textarea"] {
+    background:rgba(10,10,12,.78) !important;
+    border:1px solid rgba(255,43,43,.55) !important; border-radius:10px !important;
+    transition:border-color .18s ease, box-shadow .18s ease; }
+[data-baseweb="input"]:focus-within, [data-baseweb="textarea"]:focus-within {
+    border-color:#22c55e !important; box-shadow:0 0 14px rgba(34,197,94,.45) !important; }
+[data-baseweb="input"] input, [data-baseweb="textarea"] textarea { color:#f5f5f5 !important; caret-color:#22c55e; }
+[data-baseweb="input"] input::placeholder, [data-baseweb="textarea"] textarea::placeholder { color:#96777d !important; }
+
+/* ── Cards (containers com borda) com moldura neon ── */
+[data-testid="stContainer"] { border:1px solid rgba(255,43,43,.32) !important;
+    border-radius:14px !important; background:rgba(255,255,255,.022) !important;
+    box-shadow:0 0 22px rgba(255,43,43,.10); }
+/* título dos cards: caixa alta, tracking, barra verde à esquerda */
+[data-testid="stContainer"] [data-testid="stMarkdownContainer"]:first-of-type > p > strong {
+    font-size:1.02rem; letter-spacing:.12em; text-transform:uppercase; color:#fff;
+    border-left:3px solid #22c55e; padding-left:9px;
+    text-shadow:0 0 10px rgba(34,197,94,.45); }
+[data-testid="stSidebar"] { background:#0d0507; border-right:1px solid rgba(255,43,43,.35); }
+[data-testid="stHeader"], [data-testid="stToolbar"] { background:rgba(10,10,12,.72); }
+h1, h2, h3 { text-shadow:0 0 12px rgba(255,43,43,.35); }
+[data-testid="stExpander"] { border:1px solid rgba(255,43,43,.30); }
+[data-testid="stSuccess"] { color:#22c55e; border-color:#22c55e; }
+div[data-testid="stMetricValue"] { color:#22c55e; }
+
+/* ── Marca FreeDarkStudio (neon) ── */
+.fds-brand { display:inline-flex; gap:8px; align-items:baseline; margin:.2rem 0 .6rem; line-height:1.1; }
+.fds-brand > span { font-size:2.9rem; font-weight:800; letter-spacing:.01em; }
+.fds-free { color:#22c55e; text-shadow:0 0 6px rgba(34,197,94,.95), 0 0 18px rgba(34,197,94,.6), 0 0 38px rgba(34,197,94,.35); }
+.fds-dark { color:var(--text-color); background:var(--background-color); padding:0 10px; border-radius:8px;
+            border:1px solid rgba(255,43,43,.40); box-shadow:0 0 14px rgba(255,43,43,.25);
+            text-shadow:0 0 8px rgba(255,255,255,.35); }
+.fds-studio { color:#ff2b2b; text-shadow:0 0 6px rgba(255,43,43,.95), 0 0 20px rgba(255,43,43,.65), 0 0 44px rgba(255,43,43,.4); }
+.fds-ver { font-size:1.05rem !important; font-weight:600; color:#9aa0a6; letter-spacing:.14em; align-self:flex-start; margin-left:6px; }
+/* ── Ícones do topo (direita) no tema ── */
+[data-testid="stAppDeployButton"] { display:none !important; }
+header [data-testid="stAppDeployButton"] { display:none !important; }
+
+/* ── uploader 100% em português (textos internos do Streamlit) ── */
+[data-testid="stFileUploaderDropzoneInstructions"] > div > span { display:none !important; }
+[data-testid="stFileUploaderDropzoneInstructions"] > div > small { display:none !important; }
+[data-testid="stFileUploaderDropzoneInstructions"] > div::before {
+    content:"Arraste e solte os arquivos aqui"; display:block; font-weight:600;
+}
+[data-testid="stFileUploaderDropzoneInstructions"] > div::after {
+    content:"Limite de 200MB por arquivo · MP4, MOV, AVI, FLV, MKV, JPG, JPEG, PNG";
+    display:block; font-size:.72rem; opacity:.75; margin-top:2px;
+}
+[data-testid="stFileUploaderDropzone"] > button { font-size:0 !important; }
+[data-testid="stFileUploaderDropzone"] > button::after { content:"Escolher arquivos"; font-size:.85rem; }
+#MainMenu button { background:rgba(255,43,43,.10)!important; border:1px solid rgba(255,43,43,.55)!important;
+                   border-radius:8px!important; box-shadow:0 0 8px rgba(255,43,43,.30); }
+#MainMenu svg { fill:#ff2b2b!important; }
+[data-testid="stToolbar"] { background:transparent!important; }
+
+/* ── Verde de apoio nas outras partes da tela ── */
+a { color:#22c55e !important; }
+a:hover { text-shadow:0 0 10px rgba(34,197,94,.6); }
+hr { border-color:rgba(34,197,94,.35); }
+/* checkbox marcada em verde */
+[data-testid="stCheckbox"] label > div[data-checked="true"],
+[data-testid="stCheckbox"] input:checked + span { background:#22c55e !important; border-color:#22c55e !important; }
+[data-testid="stCheckbox"] svg { stroke:#0a0a0c !important; }
+/* slider com thumb neon verde */
+[data-testid="stSlider"] [role="slider"] { border:2px solid #22c55e !important; background:#0d0507 !important;
+    box-shadow:0 0 12px rgba(34,197,94,.55) !important; }
+/* selects com borda esverdeada (hover/foco) */
+[data-testid="stSelectbox"] > div > div { border:1px solid rgba(34,197,94,.30); }
+[data-testid="stSelectbox"] > div > div:hover { border-color:#22c55e; box-shadow:0 0 10px rgba(34,197,94,.35); }
+/* uploader de arquivo (vídeo/imagem/música) com traço verde */
+[data-testid="stFileUploaderDropzone"] { border:1px dashed rgba(34,197,94,.55) !important; }
+[data-testid="stFileUploaderDropzone"]:hover { border-color:#22c55e !important; box-shadow:0 0 12px rgba(34,197,94,.30); }
+/* expander: ícone e título ganham verde no hover */
+[data-testid="stExpander"] summary:hover { color:#22c55e; }
+/* sidebar: item ativo/links em verde */
+[data-testid="stSidebar"] a, [data-testid="stSidebar"] p { color:#c9f2d9; }
+[data-testid="stSidebar"] [data-testid="stDecoration"] { background-image:none; }
+/* caption/instruções em verde-claro */
+[data-testid="stCaptionContainer"], small { color:#7dd3a0 !important; }
+
+/* ══════════ Rodada 2 — definição pesada: bordas grossas, botões grandes, respiro ══════════ */
+
+/* ── Cards: moldura 2px, cantos largos, muito ar dentro ── */
+[data-testid="stVerticalBlockBorderWrapper"].st-emotion-cache-gc283c {
+    border:2px solid rgba(255,43,43,.50) !important;
+    border-radius:18px !important;
+    padding:28px 26px !important;
+    background:linear-gradient(180deg, rgba(255,43,43,.055) 0%, rgba(255,255,255,.015) 45%, rgba(34,197,94,.03) 100%) !important;
+    box-shadow:0 0 28px rgba(255,43,43,.16), inset 0 0 0 1px rgba(255,255,255,.04) !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"].st-emotion-cache-gc283c [data-testid="stVerticalBlock"] { gap:24px !important; }
+
+/* ── Título de cada card: maior, grosso, caixa alta com barra verde ── */
+[data-testid="stVerticalBlockBorderWrapper"].st-emotion-cache-gc283c [data-testid="stMarkdownContainer"] > p > strong {
+    font-size:1.18rem !important; font-weight:800 !important; letter-spacing:.14em !important;
+    text-transform:uppercase !important; color:#ffffff !important;
+    border-left:4px solid #22c55e !important; padding-left:12px !important;
+    display:inline-block !important; line-height:1.3 !important;
+    text-shadow:0 0 12px rgba(34,197,94,.55) !important; }
+
+/* ── Botões GRANDES e bem definidos: 2px, altos, título forte ── */
+.stButton>button {
+    min-height:52px !important;
+    padding:10px 24px !important;
+    font-size:1.03rem !important; font-weight:800 !important;
+    border-width:2px !important; border-radius:13px !important;
+    line-height:1.3 !important; white-space:normal !important;
+    letter-spacing:.03em; }
+.stButton>button[kind="primary"] {
+    min-height:60px !important; font-size:1.2rem !important;
+    text-transform:uppercase !important; letter-spacing:.09em !important;
+    background:linear-gradient(135deg,#ff3b3b 0%,#c81e1e 60%,#8f0f0f 100%) !important;
+    border-color:#ff8a8a !important;
+    box-shadow:0 0 26px rgba(255,43,43,.55), inset 0 2px 0 rgba(255,255,255,.28) !important; }
+.stButton>button[kind="primary"]:hover:not(:disabled) {
+    box-shadow:0 0 40px rgba(255,43,43,.95), inset 0 2px 0 rgba(255,255,255,.4) !important;
+    transform:translateY(-2px); }
+.stButton>button[kind="secondary"] {
+    background:linear-gradient(180deg, rgba(34,197,94,.18), rgba(34,197,94,.06)) !important;
+    border-color:#22c55e !important; color:#eafff2 !important;
+    box-shadow:0 0 14px rgba(34,197,94,.28), inset 0 1px 0 rgba(255,255,255,.10) !important; }
+.stButton>button[kind="secondary"]:hover:not(:disabled) {
+    background:linear-gradient(180deg, rgba(34,197,94,.34), rgba(34,197,94,.14)) !important;
+    box-shadow:0 0 26px rgba(34,197,94,.7) !important; transform:translateY(-2px); }
+.stButton>button[kind="tertiary"] {
+    min-height:48px !important; font-size:1.1rem !important;
+    background:rgba(10,10,12,.75) !important;
+    border-color:rgba(255,43,43,.55) !important; color:#ffd9d9 !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05) !important; }
+.stButton>button[kind="tertiary"]:hover:not(:disabled) {
+    background:rgba(255,43,43,.20) !important; border-color:#ff2b2b !important; color:#fff !important;
+    box-shadow:0 0 18px rgba(255,43,43,.7) !important; }
+
+/* ── Campos: borda 2px, altura generosa, texto maior ── */
+[data-baseweb="input"], [data-baseweb="textarea"] {
+    border-width:2px !important; border-radius:12px !important;
+    min-height:50px; background:rgba(10,10,12,.85) !important; }
+[data-baseweb="textarea"] { min-height:160px; }
+[data-baseweb="input"] input, [data-baseweb="textarea"] textarea {
+    font-size:1.05rem !important; padding:14px 16px !important; min-height:46px; }
+[data-baseweb="textarea"] textarea { min-height:150px; }
+
+/* ── Selects: borda 2px e altura maior ── */
+[data-testid="stSelectbox"] > div > div,
+[data-baseweb="select"] > div {
+    border:2px solid rgba(34,197,94,.45) !important; border-radius:12px !important;
+    min-height:50px !important; font-size:1.02rem !important; background:rgba(10,10,12,.85) !important; }
+[data-testid="stSelectbox"] > div > div:hover,
+[data-baseweb="select"] > div:hover { border-color:#22c55e !important;
+    box-shadow:0 0 16px rgba(34,197,94,.45) !important; }
+
+/* ── Rótulos: maiores e em negrito ── */
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] label {
+    font-size:1.02rem !important; font-weight:700 !important; color:#f0f2f3 !important;
+    margin-bottom:2px !important; }
+
+/* ── Espaço entre blocos (colunas do Streamlit usam % — NÃO aumentar gap
+   aqui, senão as 3 colunas e a timeline quebram linha) ── */
+[data-testid="stVerticalBlock"] { gap:20px !important; }
+/* respiro entre os 3 cards principais, sem mexer nas colunas da timeline */
+[data-testid="stColumn"]:has(> [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"].st-emotion-cache-gc283c) {
+    padding:0 10px !important; }
+
+/* ── Expander mais imponente ── */
+[data-testid="stExpander"] { border:2px solid rgba(255,43,43,.45) !important;
+    border-radius:14px !important; background:rgba(255,43,43,.05) !important; }
+[data-testid="stExpander"] summary { font-size:1.05rem !important; font-weight:800 !important; letter-spacing:.05em; }
+
+/* ── Banner do topo: enxuto, não domina a tela ── */
+[data-testid="stImage"] img { max-height:300px !important; object-fit:cover !important;
+    border-radius:14px !important; border:2px solid rgba(255,43,43,.45) !important;
+    box-shadow:0 0 24px rgba(255,43,43,.20); }
+
+/* ── Botão principal: respiro em cima ── */
+[data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:last-child { margin-top:18px !important; }
+
+/* ── Rótulo colado no campo ── */
+[data-testid="stWidgetLabel"] { margin-bottom:10px !important; }
+
+/* ════ Rodada 3 — ajustes finos (pedido do Rafael 09/10) ════ */
+
+/* ── Setas da timeline (▲▼✕): padding enxuto p/ não esbarrarem entre si ── */
+.stButton>button[kind="tertiary"] { padding:10px 14px !important; }
+
+/* ── Sidebar da esquerda removida: sem rail, sem seta, mais largura útil ── */
+[data-testid="stSidebar"] { display:none !important; }
 </style>
 """
 st.markdown(streamlit_style, unsafe_allow_html=True)
+
+# ── Ícone neon no lugar do menu "⋮" (descaracteriza o Streamlit) ──
+try:
+    with open(os.path.join(root_dir, "resource", "brand", "menu_icon.gif"), "rb") as _f:
+        _menu_b64 = base64.b64encode(_f.read()).decode()
+    st.markdown(
+        f"""<style>
+        #MainMenu button {{
+            background: transparent url(data:image/gif;base64,{_menu_b64}) center/24px 24px no-repeat !important;
+            width: 34px !important; height: 34px !important; border-radius: 9px !important;
+        }}
+        #MainMenu svg {{ display: none !important; }}
+        #MainMenu button:hover {{ box-shadow: 0 0 14px rgba(34,197,94,.55) !important; border-color: #22c55e !important; }}
+        </style>""",
+        unsafe_allow_html=True,
+    )
+except Exception:
+    pass
 
 # 定义资源目录
 font_dir = os.path.join(root_dir, "resource", "fonts")
@@ -64,6 +305,14 @@ if "video_script" not in st.session_state:
     st.session_state["video_script"] = ""
 if "video_terms" not in st.session_state:
     st.session_state["video_terms"] = ""
+# ── Textos gerados pela IA entram nos campos via pending (botões ficam DEBAIXO
+# dos text areas; setar depois da criação do widget daria erro no Streamlit) ──
+st.session_state.setdefault("fds_script_area", st.session_state.get("video_script", ""))
+st.session_state.setdefault("fds_terms_area", st.session_state.get("video_terms", ""))
+if "fds_pending_script" in st.session_state:
+    st.session_state["fds_script_area"] = st.session_state.pop("fds_pending_script")
+if "fds_pending_terms" in st.session_state:
+    st.session_state["fds_terms_area"] = st.session_state.pop("fds_pending_terms")
 if "ui_language" not in st.session_state:
     st.session_state["ui_language"] = config.ui.get("language", system_locale)
 
@@ -74,7 +323,25 @@ locales = utils.load_locales(i18n_dir)
 title_col, lang_col = st.columns([3, 1])
 
 with title_col:
-    st.title(f"MoneyPrinterTurbo v{config.project_version}")
+    st.markdown(
+        '<div class="fds-brand">'
+        '<span class="fds-free">Free</span>'
+        '<span class="fds-dark">Dark</span>'
+        '<span class="fds-studio">Studio</span>'
+        f'<span class="fds-ver">V{config.project_version}</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+# ── Imagens da marca: banner hero + logo na sidebar ──
+try:
+    _hero = os.path.join(root_dir, "resource", "brand", "hero_banner.jpg")
+    if os.path.isfile(_hero):
+        st.image(_hero, use_container_width=True)
+    # Sidebar removida (pedido do Rafael 09/10): o logo já aparece no banner
+    # e na timeline; o rail da esquerda só ocupava espaço.
+except Exception:
+    pass
 
 with lang_col:
     display_languages = []
@@ -85,7 +352,7 @@ with lang_col:
             selected_index = i
 
     selected_language = st.selectbox(
-        "Language / 语言",
+        "Idioma",
         options=display_languages,
         index=selected_index,
         key="top_language_selector",
@@ -225,34 +492,37 @@ if not config.app.get("hide_config", False):
 
         with middle_config_panel:
             st.write(tr("LLM Settings"))
+            # (rótulo mostrado na tela, chave usada no config.toml)
             llm_providers = [
-                "OpenAI",
-                "Moonshot",
-                "Azure",
-                "Qwen",
-                "DeepSeek",
-                "Gemini",
-                "Ollama",
-                "G4f",
-                "OneAPI",
-                "Cloudflare",
-                "ERNIE",
-                "Pollinations",
+                ("OpenAI", "openai"),
+                ("Moonshot", "moonshot"),
+                ("Azure", "azure"),
+                ("Qwen", "qwen"),
+                ("DeepSeek", "deepseek"),
+                ("Gemini (Google)", "gemini"),
+                ("Ollama (local)", "ollama"),
+                ("G4f", "g4f"),
+                ("OneAPI", "oneapi"),
+                ("Cloudflare", "cloudflare"),
+                ("ERNIE", "ernie"),
+                ("Pollinations", "pollinations"),
+                ("Genérico — NVIDIA / Groq / OpenRouter", "generic"),
             ]
-            saved_llm_provider = config.app.get("llm_provider", "OpenAI").lower()
-            saved_llm_provider_index = 0
-            for i, provider in enumerate(llm_providers):
-                if provider.lower() == saved_llm_provider:
-                    saved_llm_provider_index = i
-                    break
+            provider_keys = [p[1] for p in llm_providers]
+            saved_llm_provider = config.app.get("llm_provider", "openai").lower()
+            if saved_llm_provider in provider_keys:
+                saved_llm_provider_index = provider_keys.index(saved_llm_provider)
+            else:
+                saved_llm_provider_index = 0
 
-            llm_provider = st.selectbox(
+            selected_provider_index = st.selectbox(
                 tr("LLM Provider"),
-                options=llm_providers,
+                options=range(len(llm_providers)),
                 index=saved_llm_provider_index,
+                format_func=lambda x: llm_providers[x][0],
             )
             llm_helper = st.container()
-            llm_provider = llm_provider.lower()
+            llm_provider = llm_providers[selected_provider_index][1]
             config.app["llm_provider"] = llm_provider
 
             llm_api_key = config.app.get(f"{llm_provider}_api_key", "")
@@ -275,8 +545,8 @@ if not config.app.get("hide_config", False):
                             ##### Ollama配置说明
                             - **API Key**: 随便填写，比如 123
                             - **Base Url**: 一般为 http://localhost:11434/v1
-                                - 如果 `MoneyPrinterTurbo` 和 `Ollama` **不在同一台机器上**，需要填写 `Ollama` 机器的IP地址
-                                - 如果 `MoneyPrinterTurbo` 是 `Docker` 部署，建议填写 `http://host.docker.internal:11434/v1`
+                                - 如果 `FreeDarkStudio` 和 `Ollama` **不在同一台机器上**，需要填写 `Ollama` 机器的IP地址
+                                - 如果 `FreeDarkStudio` 是 `Docker` 部署，建议填写 `http://host.docker.internal:11434/v1`
                             - **Model Name**: 使用 `ollama list` 查看，比如 `qwen:7b`
                             """
 
@@ -349,15 +619,17 @@ if not config.app.get("hide_config", False):
 
             if llm_provider == "gemini":
                 if not llm_model_name:
-                    llm_model_name = "gemini-1.0-pro"
+                    llm_model_name = "gemini-3.8-flash"
 
                 with llm_helper:
                     tips = """
-                            ##### Gemini 配置说明
-                            > 需要VPN开启全局流量模式
-                            - **API Key**: [点击到官网申请](https://ai.google.dev/)
-                            - **Base Url**: 留空
-                            - **Model Name**: 比如 gemini-1.0-pro
+                            ##### Configuração do Gemini (Google)
+                            - **Chave da API**: peça em https://ai.google.dev/
+                            - **URL Base**: deixe em branco
+                            - **Nome do Modelo**: `gemini-3.8-flash` (recomendado),
+                              `gemini-3.5-flash`, `gemini-3.5-flash-lite`,
+                              `gemini-3.1-flash-lite`, `gemini-3.1-pro-preview`
+                              — o antigo `gemini-1.0-pro` foi desligado pelo Google
                             """
 
             if llm_provider == "deepseek":
@@ -393,10 +665,28 @@ if not config.app.get("hide_config", False):
                             - **Model Name**: Use 'openai-fast' or specify a model name
                             """
 
-            if tips and config.ui["language"] == "zh":
-                st.warning(
-                    "中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商\n- 国内可直接访问，不需要VPN \n- 注册就送额度，基本够用"
-                )
+            if llm_provider == "generic":
+                with llm_helper:
+                    tips = """
+                            ##### Provedor genérico (padrão OpenAI)
+                            Funciona com NVIDIA, Groq, OpenRouter e qualquer serviço compatível — preencha os 3 campos:
+                            - **Chave da API**: a chave do serviço escolhido
+                            - **URL Base**:
+                                - NVIDIA: `https://integrate.api.nvidia.com/v1`
+                                - Groq: `https://api.groq.com/openai/v1`
+                                - OpenRouter: `https://openrouter.ai/api/v1`
+                            - **Nome do Modelo**: `meta/llama-3.3-70b-instruct` (NVIDIA),
+                              `llama-3.3-70b-versatile` (Groq), `openai/gpt-4o-mini` (OpenRouter)
+                            """
+
+            if tips and (
+                config.ui["language"] == "zh"
+                or llm_provider in ("generic", "gemini")
+            ):
+                if config.ui["language"] == "zh":
+                    st.warning(
+                        "中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商\n- 国内可直接访问，不需要VPN \n- 注册就送额度，基本够用"
+                    )
                 st.info(tips)
 
             st_llm_api_key = st.text_input(
@@ -453,13 +743,19 @@ if not config.app.get("hide_config", False):
 
             pexels_api_key = get_keys_from_config("pexels_api_keys")
             pexels_api_key = st.text_input(
-                tr("Pexels API Key"), value=pexels_api_key, type="password"
+                tr("Pexels API Key"),
+                value=pexels_api_key,
+                type="password",
+                help="Pegue em https://www.pexels.com/api/ — é grátis.",
             )
             save_keys_to_config("pexels_api_keys", pexels_api_key)
 
             pixabay_api_key = get_keys_from_config("pixabay_api_keys")
             pixabay_api_key = st.text_input(
-                tr("Pixabay API Key"), value=pixabay_api_key, type="password"
+                tr("Pixabay API Key"),
+                value=pixabay_api_key,
+                type="password",
+                help="Pegue em https://pixabay.com/api/docs/ — é grátis.",
             )
             save_keys_to_config("pixabay_api_keys", pixabay_api_key)
 
@@ -472,6 +768,142 @@ right_panel = panel[2]
 params = VideoParams(video_subject="")
 uploaded_files = []
 
+# ── FreeDarkStudio: mídias locais ──
+FDS_MEDIA_EXTS = {".mp4", ".mov", ".avi", ".flv", ".mkv", ".jpg", ".jpeg", ".png"}
+FDS_VIDEO_EXTS = {".mp4", ".mov", ".avi", ".flv", ".mkv"}
+
+
+def fds_materials():
+    if "fds_local_materials" not in st.session_state:
+        st.session_state["fds_local_materials"] = []
+    return st.session_state["fds_local_materials"]
+
+
+def fds_move(idx, delta):
+    mats = fds_materials()
+    j = idx + delta
+    if 0 <= idx < len(mats) and 0 <= j < len(mats):
+        mats[idx], mats[j] = mats[j], mats[idx]
+
+
+def fds_remove(idx):
+    mats = fds_materials()
+    if 0 <= idx < len(mats):
+        item = mats.pop(idx)
+        # permite voltar a enviar/remover o mesmo upload depois (limpa o dedupe)
+        fid = item.get("file_id")
+        if fid and "fds_saved_ids" in st.session_state:
+            st.session_state["fds_saved_ids"].discard(fid)
+
+
+def fds_clear():
+    st.session_state["fds_local_materials"] = []
+    # marca a pasta como já varrida: sem isso a próxima execução reenche a timeline
+    st.session_state["fds_loaded_folder"] = st.session_state.get("fds_local_folder", "")
+
+
+@st.cache_data(show_spinner=False)
+def fds_media_info(file_path):
+    """(rótulo, duração em segundos ou None) de um arquivo local."""
+    ext = os.path.splitext(file_path)[1].lower()
+    kind = "vídeo" if ext in FDS_VIDEO_EXTS else "imagem"
+    duration = None
+    if kind == "vídeo":
+        try:
+            import av
+
+            with av.open(file_path) as container:
+                stream = next((s for s in container.streams if s.type == "video"), None)
+                if stream is not None and stream.duration and stream.time_base:
+                    duration = float(stream.duration * stream.time_base)
+        except Exception:
+            duration = None
+    return kind, duration
+
+
+def fds_add_folder(folder):
+    """Adiciona à linha do tempo os mídias de uma pasta do PC. Retorna (n, erro)."""
+    folder = (folder or "").strip()
+    if not folder:
+        return 0, "Digite o caminho de uma pasta primeiro."
+    folder = os.path.abspath(os.path.expanduser(folder))
+    if not os.path.isdir(folder):
+        return 0, f"Pasta não encontrada: {folder}"
+    mats = fds_materials()
+    known = {m["path"] for m in mats}
+    added = 0
+    for nome in sorted(os.listdir(folder)):
+        if added >= 300:
+            return added, "Limite de 300 arquivos por pasta: só os 300 primeiros (por ordem alfabética) foram adicionados."
+        caminho = os.path.join(folder, nome)
+        if not os.path.isfile(caminho):
+            continue
+        if os.path.splitext(nome)[1].lower() not in FDS_MEDIA_EXTS:
+            continue
+        if caminho in known:
+            continue
+        mats.append({"path": caminho, "name": nome})
+        known.add(caminho)
+        added += 1
+    return added, None
+
+
+def fds_render_timeline():
+    st.write("Linha do tempo")
+    mats = fds_materials()
+    if not mats:
+        st.caption("Nenhum material ainda — envie arquivos ou carregue uma pasta.")
+        return
+    st.caption(
+        "A ordem abaixo é a ordem dos clipes no vídeo final (modo **Sequential** do "
+        "*Video Concat Mode*; **Random** embaralha)."
+    )
+    for i, m in enumerate(mats):
+        kind, duration = fds_media_info(m["path"])
+        c_num, c_thumb, c_info, c_up, c_down, c_del = st.columns(
+            [0.5, 1.2, 6.4, 1.6, 1.6, 1.6]
+        )
+        c_num.markdown(f"**{i + 1}**")
+        if kind == "imagem":
+            c_thumb.image(m["path"], width=72)
+        else:
+            c_thumb.markdown("🎞️")
+        detalhe = f"{kind} · {duration:.0f} s" if duration else kind
+        c_info.caption(f"{m['name']} — {detalhe}")
+        c_up.button(
+            "▲",
+            key=f"fds_up_{i}",
+            disabled=(i == 0),
+            on_click=fds_move,
+            args=(i, -1),
+            type="tertiary",
+            use_container_width=True,
+        )
+        c_down.button(
+            "▼",
+            key=f"fds_down_{i}",
+            disabled=(i == len(mats) - 1),
+            on_click=fds_move,
+            args=(i, 1),
+            type="tertiary",
+            use_container_width=True,
+        )
+        c_del.button(
+            "✕",
+            key=f"fds_del_{i}",
+            on_click=fds_remove,
+            args=(i,),
+            type="tertiary",
+            use_container_width=True,
+        )
+    st.button(
+        "Limpar linha do tempo",
+        key="fds_clear_timeline",
+        on_click=fds_clear,
+        type="tertiary",
+    )
+
+
 with left_panel:
     with st.container(border=True):
         st.write(tr("Video Script Settings"))
@@ -479,6 +911,7 @@ with left_panel:
             tr("Video Subject"),
             value=st.session_state["video_subject"],
             key="video_subject_input",
+            help="A IA usa este tema para escrever o roteiro e as palavras-chave.",
         ).strip()
 
         video_languages = [
@@ -490,8 +923,7 @@ with left_panel:
         selected_index = st.selectbox(
             tr("Script Language"),
             index=0,
-            options=range(
-                len(video_languages)
+            options=range(                len(video_languages)
             ),  # Use the index as the internal option value
             format_func=lambda x: video_languages[x][
                 0
@@ -499,39 +931,61 @@ with left_panel:
         )
         params.video_language = video_languages[selected_index][1]
 
-        if st.button(
-            tr("Generate Video Script and Keywords"), key="auto_generate_script"
-        ):
-            with st.spinner(tr("Generating Video Script and Keywords")):
-                script = llm.generate_script(
-                    video_subject=params.video_subject, language=params.video_language
-                )
-                terms = llm.generate_terms(params.video_subject, script)
-                if "Error: " in script:
-                    st.error(tr(script))
-                elif "Error: " in terms:
-                    st.error(tr(terms))
-                else:
-                    st.session_state["video_script"] = script
-                    st.session_state["video_terms"] = ", ".join(terms)
         params.video_script = st.text_area(
-            tr("Video Script"), value=st.session_state["video_script"], height=280
+            tr("Video Script"),
+            key="fds_script_area",
+            height=280,
+            help="Deixe em branco para a IA escrever. Pontuação ajuda na quebra das legendas.",
         )
-        if st.button(tr("Generate Video Keywords"), key="auto_generate_terms"):
-            if not params.video_script:
-                st.error(tr("Please Enter the Video Subject"))
-                st.stop()
-
-            with st.spinner(tr("Generating Video Keywords")):
-                terms = llm.generate_terms(params.video_subject, params.video_script)
-                if "Error: " in terms:
-                    st.error(tr(terms))
-                else:
-                    st.session_state["video_terms"] = ", ".join(terms)
-
         params.video_terms = st.text_area(
-            tr("Video Keywords"), value=st.session_state["video_terms"]
+            tr("Video Keywords"),
+            key="fds_terms_area",
+            help="Opcional — vazio a IA gera. Separe por vírgula, em inglês.",
         )
+
+        # Ações de IA agrupadas no fim do card (ordem nova — só nossas cores)
+        ai_cols = st.columns(2)
+        with ai_cols[0]:
+            if st.button(
+                tr("Generate Video Script and Keywords"),
+                key="auto_generate_script",
+                use_container_width=True,
+            ):
+                with st.spinner(tr("Generating Video Script and Keywords")):
+                    script = llm.generate_script(
+                        video_subject=params.video_subject,
+                        language=params.video_language,
+                    )
+                    terms = llm.generate_terms(params.video_subject, script)
+                    if "Error: " in script:
+                        st.error(tr(script))
+                    elif "Error: " in terms:
+                        st.error(tr(terms))
+                    else:
+                        st.session_state["video_script"] = script
+                        st.session_state["video_terms"] = ", ".join(terms)
+                        st.session_state["fds_pending_script"] = script
+                        st.session_state["fds_pending_terms"] = ", ".join(terms)
+                        st.rerun()
+        with ai_cols[1]:
+            if st.button(
+                tr("Generate Video Keywords"),
+                key="auto_generate_terms",
+                use_container_width=True,
+            ):
+                if not params.video_script:
+                    st.error(tr("Please Enter the Video Subject"))
+                else:
+                    with st.spinner(tr("Generating Video Keywords")):
+                        terms = llm.generate_terms(
+                            params.video_subject, params.video_script
+                        )
+                        if "Error: " in terms:
+                            st.error(tr(terms))
+                        else:
+                            st.session_state["video_terms"] = ", ".join(terms)
+                            st.session_state["fds_pending_terms"] = ", ".join(terms)
+                            st.rerun()
 
 with middle_panel:
     with st.container(border=True):
@@ -542,17 +996,17 @@ with middle_panel:
             (tr("Semantic Text Alignment"), "semantic"),
         ]
         video_sources = [
+            (tr("Local file"), "local"),
             (tr("Pexels"), "pexels"),
             (tr("Pixabay"), "pixabay"),
-            (tr("Local file"), "local"),
-            (tr("TikTok"), "douyin"),
-            (tr("Bilibili"), "bilibili"),
-            (tr("Xiaohongshu"), "xiaohongshu"),
         ]
 
-        saved_video_source_name = config.app.get("video_source", "pexels")
-        saved_video_source_index = [v[1] for v in video_sources].index(
-            saved_video_source_name
+        source_values = [v[1] for v in video_sources]
+        saved_video_source_name = config.app.get("video_source", "local")
+        saved_video_source_index = (
+            source_values.index(saved_video_source_name)
+            if saved_video_source_name in source_values
+            else 0
         )
 
         selected_index = st.selectbox(
@@ -564,16 +1018,87 @@ with middle_panel:
         params.video_source = video_sources[selected_index][1]
         config.app["video_source"] = params.video_source
 
+        search_theme = st.text_input(
+            "Tema de pesquisa",
+            key="fds_search_theme",
+            help="Palavras em inglês separadas por vírgula, usadas para buscar os vídeos "
+            "no Pexels/Pixabay. Deixe vazio para usar as Palavras-chave do Vídeo "
+            "(painel da esquerda).",
+        )
+        if search_theme.strip():
+            params.video_terms = search_theme.strip()
+        if params.video_source in ("pexels", "pixabay"):
+            fonte = "Pexels" if params.video_source == "pexels" else "Pixabay"
+            st.caption(
+                f"{fonte} é uma API online: informe a chave em "
+                "**Configurações Básicas → Configurações da Fonte do Vídeo** "
+                "(topo da página)."
+            )
+        else:
+            st.caption(
+                "Com **Arquivo local** a busca é ignorada: os clipes vêm da sua "
+                "pasta e da linha do tempo abaixo."
+            )
+
         if params.video_source == "local":
+            st.caption(
+                "Um único ponto de entrada: solte os arquivos na área grande abaixo ou "
+                "informe uma pasta do PC e tecle Enter. A ordem se organiza na linha do "
+                "tempo (setas ▲▼)."
+            )
+
+            local_folder = st.text_input(
+                "Pasta de vídeos/imagens",
+                value=config.app.get("local_media_folder", ""),
+                key="fds_local_folder",
+                help="Caminho de uma pasta deste computador, ex.: /home/rafael/videos. "
+                "Digite o caminho e tecle Enter — os arquivos são lidos direto dela, sem copiar.",
+            )
+            config.app["local_media_folder"] = local_folder
+            # varre a pasta automaticamente quando o caminho muda (ou na 1ª execução)
+            if local_folder and st.session_state.get("fds_loaded_folder") != local_folder:
+                added, erro = fds_add_folder(local_folder)
+                st.session_state["fds_loaded_folder"] = local_folder
+                if added:
+                    st.toast(f"{added} arquivo(s) adicionado(s) à linha do tempo")
+                if erro:
+                    st.warning(erro)
+                elif not added:
+                    st.info(
+                        "Nenhum arquivo novo (aceitos: MP4, MOV, AVI, FLV, MKV, JPG, JPEG, PNG)."
+                    )
+
             uploaded_files = st.file_uploader(
-                "Upload Local Files",
+                "Envie vídeos ou imagens do PC",
                 type=["mp4", "mov", "avi", "flv", "mkv", "jpg", "jpeg", "png"],
                 accept_multiple_files=True,
             )
+            if uploaded_files:
+                if "fds_saved_ids" not in st.session_state:
+                    st.session_state["fds_saved_ids"] = set()
+                saved_ids = st.session_state["fds_saved_ids"]
+                mats = fds_materials()
+                known = {m["path"] for m in mats}
+                local_videos_dir = utils.storage_dir("local_videos", create=True)
+                for file in uploaded_files:
+                    if file.file_id in saved_ids:
+                        continue
+                    file_path = os.path.join(
+                        local_videos_dir, f"{file.file_id}_{file.name}"
+                    )
+                    if file_path in known:
+                        saved_ids.add(file.file_id)
+                        continue
+                    with open(file_path, "wb") as f:
+                        f.write(file.getbuffer())
+                    saved_ids.add(file.file_id)
+                    mats.append(
+                        {"path": file_path, "name": file.name, "file_id": file.file_id}
+                    )
 
         selected_index = st.selectbox(
             tr("Video Concat Mode"),
-            index=1,
+            index=0 if params.video_source == "local" else 1,
             options=range(
                 len(video_concat_modes)
             ),  # Use the index as the internal option value
@@ -585,6 +1110,7 @@ with middle_panel:
             video_concat_modes[selected_index][1]
         )
 
+
         # Semantic Video Matching Settings - only show when semantic mode is selected
         if params.video_concat_mode.value == "semantic":
             with st.container(border=True):
@@ -594,9 +1120,9 @@ with middle_panel:
                 # Check if sentence-transformers is available
                 try:
                     import sentence_transformers
-                    st.success("✅ Semantic search dependencies are installed and ready.")
+                    st.success("✅ Dependências da busca semântica instaladas e prontas.")
                 except ImportError:
-                    st.warning("⚠️ Semantic search requires sentence-transformers package to be installed.")
+                    st.warning("⚠️ A busca semântica requer o pacote sentence-transformers.")
                     st.code("pip install sentence-transformers scikit-learn")
                 
                 # Script Segmentation Method
@@ -725,7 +1251,7 @@ with middle_panel:
                     image_sim_info = {"available": False, "dependencies": missing_deps}
                 
                 if image_sim_available:
-                    st.success("✅ Image similarity dependencies are installed and ready.")
+                    st.success("✅ Dependências de similaridade de imagens instaladas e prontas.")
                     
                     # Enable Image Similarity - use config default
                     params.enable_image_similarity = st.checkbox(
@@ -775,7 +1301,7 @@ with middle_panel:
                         params.image_similarity_threshold = config.app.get("image_similarity_threshold", 0.7)
                         params.image_similarity_model = config.app.get("image_similarity_model", "clip-vit-base-patch32")
                 else:
-                    st.warning("⚠️ Image similarity requires additional dependencies.")
+                    st.warning("⚠️ A similaridade de imagens requer dependências adicionais.")
                     missing_deps = ", ".join(image_sim_info.get("dependencies", []))
                     st.code(f"pip install {missing_deps}")
                     params.enable_image_similarity = False
@@ -829,32 +1355,31 @@ with middle_panel:
         )
         params.video_aspect = VideoAspect(video_aspect_ratios[selected_index][1])
 
+        # Formatos de entrada/saída visíveis (pedido do Rafael)
+        st.caption(
+            "🎬 **Entrada e saída**: mesma proporção (**9:16** ou **16:9**) na entrada e no vídeo final"
+        )
+        st.caption(
+            "📥 **Formatos aceitos**: MP4 · MOV · AVI · FLV · MKV (vídeo) · JPG · JPEG · PNG (imagem)"
+        )
+        st.caption("📤 **Saída**: MP4 (H.264) — formato mais usado, abre em qualquer lugar")
+
         params.video_clip_duration = st.selectbox(
             tr("Clip Duration"), options=[2, 3, 4, 5, 6, 7, 8, 9, 10], index=1
         )
-        params.video_count = st.selectbox(
-            tr("Number of Videos Generated Simultaneously"),
-            options=[1, 2, 3, 4, 5],
-            index=0,
-        )
-        
-        # Show warning for multiple videos with semantic mode
-        if params.video_count > 1 and params.video_concat_mode.value == "semantic":
-            st.warning("⚠️ **Multiple Videos + Semantic Mode**: When generating multiple videos, the system will automatically use **Random** concatenation mode instead of Semantic mode to ensure video variety. Semantic mode would produce identical videos, which is not useful for multiple generation.")
+        # Sempre 1 vídeo por vez (pedido do Rafael)
+        params.video_count = 1
 
     with st.container(border=True):
         st.write(tr("Audio Settings"))
 
-        # 添加TTS服务器选择下拉框
+        # Motor de fala único: Supertonic3 (edge/azure removidos - pedido do Rafael)
         tts_servers = [
-            ("azure-tts-v1", "Azure TTS V1"),
-            ("azure-tts-v2", "Azure TTS V2"),
-            ("siliconflow", "SiliconFlow TTS"),
-            ("chatterbox", "Chatterbox TTS (Open Source)"),
+            ("supertonic", "Supertonic3 (local, CPU)"),
+            ("chatterbox", "Chatterbox (local, clonagem de voz)"),
         ]
 
-        # 获取保存的TTS服务器，默认为v1
-        saved_tts_server = config.ui.get("tts_server", "azure-tts-v1")
+        saved_tts_server = config.ui.get("tts_server", "supertonic")
         saved_tts_server_index = 0
         for i, (server_value, _) in enumerate(tts_servers):
             if server_value == saved_tts_server:
@@ -880,6 +1405,8 @@ with middle_panel:
         elif selected_tts_server == "chatterbox":
             # 获取Chatterbox的声音列表
             filtered_voices = voice.get_chatterbox_voices()
+        elif selected_tts_server == "supertonic":
+            filtered_voices = voice.get_supertonic_voices()
         else:
             # 获取Azure的声音列表
             all_voices = voice.get_all_azure_voices(filter_locals=None)
@@ -938,11 +1465,20 @@ with middle_panel:
             config.ui["voice_name"] = voice_name
         else:
             # 如果没有声音可选，显示提示信息
-            st.warning(
-                tr(
-                    "No voices available for the selected TTS server. Please select another server."
+            if selected_tts_server == "chatterbox" and not getattr(
+                voice, "CHATTERBOX_AVAILABLE", False
+            ):
+                st.warning(
+                    "Chatterbox TTS não está instalado neste ambiente. Instale com "
+                    "`pip install chatterbox-tts whisperx` e reinicie a WebUI para "
+                    "usar a clonagem de voz."
                 )
-            )
+            else:
+                st.warning(
+                    tr(
+                        "No voices available for the selected TTS server. Please select another server."
+                    )
+                )
             params.voice_name = ""
             config.ui["voice_name"] = ""
 
@@ -952,12 +1488,11 @@ with middle_panel:
             st.write("**Chatterbox TTS Settings**")
             
             # 显示当前选择的声音类型
-            if voice_name.startswith("chatterbox:default:"):
-                st.info("🎙️ Using default Chatterbox voice")
+            if voice_name.startswith("chatterbox:default:"):                    st.info("🎙️ Usando a voz padrão do Chatterbox")
             elif voice_name.startswith("chatterbox:clone:"):
                 voice_base_name = voice_name.split(":")[-1].split("-")[0]
                 if voice_base_name == "Voice Clone":
-                    st.info("🎯 Voice cloning mode - add reference audio files to reference_audio/ folder")
+                    st.info("🎯 Modo de clonagem de voz — adicione áudios de referência na pasta reference_audio/")
                 else:
                     st.success(f"🎭 Voice cloning with: {voice_base_name}")
             
@@ -967,56 +1502,23 @@ with middle_panel:
             reference_audio_dir = os.path.join(utils.root_dir(), "reference_audio")
             
             if not os.path.exists(reference_audio_dir):
-                with st.expander("📁 Voice Cloning Setup", expanded=False):
-                    st.warning("Reference audio folder not found. Create it to enable voice cloning:")
+                with st.expander("📁 Clonagem de Voz — configuração", expanded=False):
+                    st.warning("Pasta de áudios de referência não encontrada. Crie-a para ativar a clonagem de voz:")
                     st.code(f"mkdir {reference_audio_dir}")
-                    st.info("Add your reference audio files (.wav, .mp3, .flac, .m4a) to this folder for voice cloning.")
+                    st.info("Coloque seus áudios de referência (.wav, .mp3, .flac, .m4a) nesta pasta.")
             else:
                 audio_files = [f for f in os.listdir(reference_audio_dir) 
                              if f.lower().endswith(('.wav', '.mp3', '.flac', '.m4a'))]
                 
-                with st.expander(f"📁 Voice Cloning Files ({len(audio_files)} found)", expanded=False):
+                with st.expander(f"📁 Arquivos de clonagem de voz ({len(audio_files)} encontrados)", expanded=False):
                     if audio_files:
-                        st.success(f"Found {len(audio_files)} reference audio files:")
+                        st.success(f"{len(audio_files)} áudio(s) de referência encontrado(s):")
                         for file in audio_files:
                             st.write(f"• {file}")
                     else:
-                        st.info("No reference audio files found. Add .wav, .mp3, .flac, or .m4a files for voice cloning.")
+                        st.info("Nenhum áudio de referência. Adicione arquivos .wav, .mp3, .flac ou .m4a nesta pasta.")
             
 
-
-        # 只有在有声音可选时才显示试听按钮
-        if friendly_names and st.button(tr("Play Voice")):
-            play_content = params.video_subject
-            if not play_content:
-                play_content = params.video_script
-            if not play_content:
-                play_content = tr("Voice Example")
-            with st.spinner(tr("Synthesizing Voice")):
-                temp_dir = utils.storage_dir("temp", create=True)
-                audio_file = os.path.join(temp_dir, f"tmp-voice-{str(uuid4())}.mp3")
-                sub_maker = voice.tts(
-                    text=play_content,
-                    voice_name=voice_name,
-                    voice_rate=params.voice_rate,
-                    voice_file=audio_file,
-                    voice_volume=params.voice_volume,
-                )
-                # if the voice file generation failed, try again with a default content.
-                if not sub_maker:
-                    play_content = "This is a example voice. if you hear this, the voice synthesis failed with the original content."
-                    sub_maker = voice.tts(
-                        text=play_content,
-                        voice_name=voice_name,
-                        voice_rate=params.voice_rate,
-                        voice_file=audio_file,
-                        voice_volume=params.voice_volume,
-                    )
-
-                if sub_maker and os.path.exists(audio_file):
-                    st.audio(audio_file, format="audio/mp3")
-                    if os.path.exists(audio_file):
-                        os.remove(audio_file)
 
         # 当选择V2版本或者声音是V2声音时，显示服务区域和API key输入框
         if selected_tts_server == "azure-tts-v2" or (
@@ -1068,13 +1570,48 @@ with middle_panel:
             tr("Speech Volume"),
             options=[0.6, 0.8, 1.0, 1.2, 1.5, 2.0, 3.0, 4.0, 5.0],
             index=2,
+            help="1.0 = 100% do volume original da voz.",
         )
 
         params.voice_rate = st.selectbox(
             tr("Speech Rate"),
             options=[0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.8, 2.0],
             index=2,
+            help="1.0 = ritmo normal.",
         )
+
+        # 试听 DEPOIS de volume/velocidade — senão o preview usa os valores velhos
+        if friendly_names and st.button(tr("Play Voice"), use_container_width=True):
+            play_content = params.video_subject
+            if not play_content:
+                play_content = params.video_script
+            if not play_content:
+                play_content = tr("Voice Example")
+            with st.spinner(tr("Synthesizing Voice")):
+                temp_dir = utils.storage_dir("temp", create=True)
+                audio_file = os.path.join(temp_dir, f"tmp-voice-{str(uuid4())}.mp3")
+                sub_maker = voice.tts(
+                    text=play_content,
+                    voice_name=voice_name,
+                    voice_rate=params.voice_rate,
+                    voice_file=audio_file,
+                    voice_volume=params.voice_volume,
+                )
+                # if the voice file generation failed, try again with a default content.
+                if not sub_maker:
+                    play_content = "This is a example voice. if you hear this, the voice synthesis failed with the original content."
+                    sub_maker = voice.tts(
+                        text=play_content,
+                        voice_name=voice_name,
+                        voice_rate=params.voice_rate,
+                        voice_file=audio_file,
+                        voice_volume=params.voice_volume,
+                    )
+
+                if sub_maker and os.path.exists(audio_file):
+                    st.audio(audio_file, format="audio/mp3")
+                    if os.path.exists(audio_file):
+                        os.remove(audio_file)
 
         bgm_options = [
             (tr("No Background Music"), ""),
@@ -1096,22 +1633,37 @@ with middle_panel:
 
         # Show or hide components based on the selection
         if params.bgm_type == "custom":
-            custom_bgm_file = st.text_input(
-                tr("Custom Background Music File"), key="custom_bgm_file_input"
+            custom_bgm_upload = st.file_uploader(
+                tr("Custom Background Music File"),
+                type=["mp3", "wav", "m4a", "ogg", "flac", "aac"],
+                key="custom_bgm_file_input",
             )
-            if custom_bgm_file and os.path.exists(custom_bgm_file):
-                params.bgm_file = custom_bgm_file
-                # st.write(f":red[已选择自定义背景音乐]：**{custom_bgm_file}**")
+            if custom_bgm_upload is not None:
+                bgm_dir = utils.storage_dir("bgm", create=True)
+                bgm_path = os.path.join(bgm_dir, custom_bgm_upload.name)
+                with open(bgm_path, "wb") as f:
+                    f.write(custom_bgm_upload.getbuffer())
+                params.bgm_file = bgm_path
+                st.success(f"🎵 {tr('Custom Background Music File')}: {custom_bgm_upload.name}")
         params.bgm_volume = st.selectbox(
             tr("Background Music Volume"),
             options=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
             index=2,
+            help="0.2 = 20% — não deixe alto demais, senão cobre a narração.",
         )
 
 with right_panel:
     with st.container(border=True):
+        st.write(tr("Timeline"))
+        fds_render_timeline()
+
+    with st.container(border=True):
         st.write(tr("Subtitle Settings"))
-        params.subtitle_enabled = st.checkbox(tr("Enable Subtitles"), value=True)
+        params.subtitle_enabled = st.checkbox(
+            tr("Enable Subtitles"),
+            value=True,
+            help="Se desmarcado, as opções abaixo não têm efeito.",
+        )
         font_names = get_all_fonts()
         saved_font_name = config.ui.get("font_name", "MicrosoftYaHeiBold.ttc")
         saved_font_name_index = 0
@@ -1169,11 +1721,12 @@ with right_panel:
             params.stroke_width = st.slider(tr("Stroke Width"), 0.0, 10.0, 1.5)
 
         # Word highlighting settings
-        st.write("**Word Highlighting**")
+        st.write("**Destaque da Palavra Falada**")
         saved_enable_word_highlighting = config.ui.get("enable_word_highlighting", False)
         params.enable_word_highlighting = st.checkbox(
-            tr("Enable Word Highlighting (If unchecked, the settings below will not take effect)"), 
-            value=saved_enable_word_highlighting
+            tr("Enable Word Highlighting (If unchecked, the settings below will not take effect)"),
+            value=saved_enable_word_highlighting,
+            help="Se desmarcado, as opções abaixo não têm efeito.",
         )
         config.ui["enable_word_highlighting"] = params.enable_word_highlighting
         
@@ -1228,18 +1781,21 @@ if start_button:
         scroll_to_bottom()
         st.stop()
 
-    if uploaded_files:
-        local_videos_dir = utils.storage_dir("local_videos", create=True)
-        for file in uploaded_files:
-            file_path = os.path.join(local_videos_dir, f"{file.file_id}_{file.name}")
-            with open(file_path, "wb") as f:
-                f.write(file.getbuffer())
-                m = MaterialInfo()
-                m.provider = "local"
-                m.url = file_path
-                if not params.video_materials:
-                    params.video_materials = []
-                params.video_materials.append(m)
+    if params.video_source == "local":
+        mats = st.session_state.get("fds_local_materials") or []
+        if not mats:
+            st.error(
+                "Envie arquivos ou carregue uma pasta com vídeos/imagens antes de gerar."
+            )
+            scroll_to_bottom()
+            st.stop()
+        if not params.video_materials:
+            params.video_materials = []
+        for m in mats:
+            mi = MaterialInfo()
+            mi.provider = "local"
+            mi.url = m["path"]
+            params.video_materials.append(mi)
 
     log_container = st.empty()
     log_records = []

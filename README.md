@@ -1,8 +1,8 @@
-# MoneyPrinterTurbo - Enhanced Fork
+# FreeDarkStudio
 
-This is an enhanced version of [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) with significant improvements to subtitle highlighting and TTS capabilities. Full credit goes to the original author and contributors.
+FreeDarkStudio e um gerador automatico de videos curtos com IA: um tema ou palavra-chave vira roteiro, materiais, legendas, narracao e video final.
 
-## What's Different in This Fork
+## O que hay de novo
 
 ### Enhanced Subtitle System
 - **Word-by-word highlighting**: Each word lights up exactly when spoken, making videos more engaging
@@ -32,15 +32,15 @@ See the enhanced features in action:
 
 **Full-Length Video Example**
 
-[![MoneyPrinterTurbo Example Video](https://img.youtube.com/vi/yXc07ROgj80/maxresdefault.jpg)](https://www.youtube.com/watch?v=yXc07ROgj80)
+[![FreeDarkStudio Example Video](https://img.youtube.com/vi/yXc07ROgj80/maxresdefault.jpg)](https://www.youtube.com/watch?v=yXc07ROgj80)
 
 **YouTube Shorts Example**  
 
-[![MoneyPrinterTurbo Shorts Example](https://img.youtube.com/vi/JBAuXpVHt40/maxresdefault.jpg)](https://www.youtube.com/shorts/JBAuXpVHt40)
+[![FreeDarkStudio Shorts Example](https://img.youtube.com/vi/JBAuXpVHt40/maxresdefault.jpg)](https://www.youtube.com/shorts/JBAuXpVHt40)
 
 **Chatterbox TTS Generated Video**  
 
-[![MoneyPrinterTurbo Chatterbox Example](https://img.youtube.com/vi/ZAttF-cVce8/maxresdefault.jpg)](https://youtube.com/shorts/ZAttF-cVce8?feature=share)
+[![FreeDarkStudio Chatterbox Example](https://img.youtube.com/vi/ZAttF-cVce8/maxresdefault.jpg)](https://youtube.com/shorts/ZAttF-cVce8?feature=share)
 
 > **Features Showcased**: Natural voice synthesis • Word-level subtitle highlighting • Timing synchronization • Open-source TTS quality
 
@@ -103,10 +103,10 @@ REQUIRED DELIVERABLES:
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/Asad-Ismail/MoneyPrinterTurbo-Extended.git
-cd MoneyPrinterTurbo-Extended
+git clone <repositorio FreeDarkStudio>
+cd FreeDarkStudio
 conda env create -f environment.yml
-conda activate MoneyPrinterTurbo
+conda activate FreeDarkStudio
 
 # 2. Install Chatterbox TTS (voice cloning)
 git clone https://github.com/resemble-ai/chatterbox.git
@@ -172,6 +172,3 @@ If you encounter CUDA library issues, the startup scripts automatically:
 
 If you found this project useful please give it a star and consider contributing to it or open an issue if you have an idea that can make it more useful.
 
-## Original Project Credits
-
-This fork maintains full compatibility with the original MoneyPrinterTurbo while adding new features. Check out the [original repository](https://github.com/harry0703/MoneyPrinterTurbo) for the base project documentation and additional features.

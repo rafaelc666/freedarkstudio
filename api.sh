@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# MoneyPrinterTurbo API Server Startup Script
+# FreeDarkStudio API Server Startup Script
 
-echo "🚀 Starting MoneyPrinterTurbo API Server"
+echo "🚀 Starting FreeDarkStudio API Server"
 
 # Set up CUDA/cuDNN environment
 source "$(dirname "$0")/setup_cuda_env.sh"

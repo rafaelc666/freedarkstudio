@@ -30,6 +30,8 @@ pixabay_api_keys = []
 #   oneapi
 #   cloudflare
 #   ernie       (文心一言)
+#   pollinations
+#   generic     (padrão OpenAI: NVIDIA / Groq / OpenRouter)
 llm_provider = "openai"
 
 ########## Pollinations AI Settings
@@ -82,7 +84,15 @@ azure_api_version = "2024-02-15-preview"
 
 ########## Gemini API Key
 gemini_api_key = ""
-gemini_model_name = "gemini-1.0-pro"
+gemini_model_name = "gemini-3.8-flash"
+
+########## Provedor genérico (padrão OpenAI: NVIDIA / Groq / OpenRouter)
+# NVIDIA:  https://integrate.api.nvidia.com/v1
+# Groq:    https://api.groq.com/openai/v1
+# OpenRouter: https://openrouter.ai/api/v1
+generic_api_key = ""
+generic_base_url = ""
+generic_model_name = ""
 
 ########## Qwen API Key
 # Visit https://dashscope.console.aliyun.com/apiKey to get your API key

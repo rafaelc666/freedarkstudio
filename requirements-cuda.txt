@@ -1,4 +1,4 @@
-# MoneyPrinterTurbo CUDA Requirements
+# FreeDarkStudio CUDA Requirements
 # Complete CUDA 12.x ecosystem for GPU acceleration
 
 # Core PyTorch with CUDA support  

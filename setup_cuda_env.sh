@@ -1,5 +1,5 @@
 #!/bin/bash
-# MoneyPrinterTurbo CUDA Environment Setup
+# FreeDarkStudio CUDA Environment Setup
 # This script sets up the necessary CUDA/cuDNN library paths for compatibility
 
 # Add cuDNN library path so system can find libcudnn_ops_infer.so.8
@@ -32,5 +32,5 @@ export CHATTERBOX_CFG_WEIGHT="${CHATTERBOX_CFG_WEIGHT:-0.2}"
 # Higher values = less chunking = more consistent pacing
 export CHATTERBOX_CHUNK_THRESHOLD="${CHATTERBOX_CHUNK_THRESHOLD:-800}"
 
-echo "🚀 CUDA environment configured for MoneyPrinterTurbo"
+echo "🚀 CUDA environment configured for FreeDarkStudio"
 echo "🎤 Chatterbox TTS: cfg_weight=$CHATTERBOX_CFG_WEIGHT, chunk_threshold=$CHATTERBOX_CHUNK_THRESHOLD" 

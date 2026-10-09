@@ -1174,6 +1174,8 @@ def tts(
         else:
             logger.error(f"Invalid siliconflow voice name format: {voice_name}")
             return None
+    elif is_supertonic_voice(voice_name):
+        return supertonic_tts(text, voice_name, voice_rate, voice_file, voice_volume)
     elif is_chatterbox_voice(voice_name):
         # Chatterbox TTS with WhisperX timestamps
         # 格式: chatterbox:type:name-Gender
@@ -1202,7 +1204,7 @@ def azure_tts_v1(
             logger.info(f"start, voice name: {voice_name}, try: {i + 1}")
 
             async def _do() -> SubMaker:
-                communicate = edge_tts.Communicate(text, voice_name, rate=rate_str)
+                communicate = edge_tts.Communicate(text, voice_name, rate=rate_str, boundary="WordBoundary")
                 sub_maker = ensure_submaker_compatibility(edge_tts.SubMaker())
                 with open(voice_file, "wb") as file:
                     async for chunk in communicate.stream():
@@ -2263,13 +2265,13 @@ def create_subtitle(sub_maker: SubMaker, text: str, subtitle_file: str):
                 file.write("\n".join(sub_items) + "\n")
             try:
                 sbs = subtitles.file_to_subtitles(subtitle_file, encoding="utf-8")
-                duration = max([tb for ((ta, tb), txt) in sbs])
+                valid_ends = [tb for ((ta, tb), txt) in sbs if tb is not None]
+                duration = max(valid_ends) if valid_ends else 0
                 logger.info(
                     f"completed, subtitle file created: {subtitle_file}, duration: {duration}"
                 )
             except Exception as e:
-                logger.error(f"failed, error: {str(e)}")
-                os.remove(subtitle_file)
+                logger.warning(f"could not compute subtitle duration for logging: {str(e)}")
         else:
             logger.warning(
                 f"failed, sub_items len: {len(sub_items)}, script_lines len: {len(script_lines)}"
@@ -2290,3 +2292,84 @@ def get_audio_duration(sub_maker: SubMaker):
 
 # Note: This module contains TTS functions for Azure TTS V1/V2, SiliconFlow TTS, and Chatterbox TTS
 # All functions are optimized for production use with proper error handling and fallbacks
+
+# ── Supertonic3 (TTS local, CPU — motor da casa) ──
+_SUPERTONIC_ENGINE_DIR = "/run/media/rafael/Novo volume/dev-projetos/BlueBookStudio/gerador_audio"
+
+
+def is_supertonic_voice(voice_name: str) -> bool:
+    return isinstance(voice_name, str) and voice_name.startswith("supertonic:")
+
+
+def _supertonic_engine():
+    import sys
+    if _SUPERTONIC_ENGINE_DIR not in sys.path:
+        sys.path.insert(0, _SUPERTONIC_ENGINE_DIR)
+    import supertonic3_engine
+    return supertonic3_engine
+
+
+_SUPERTONIC_NOMES = {
+    "F1": "Maria", "F2": "Ana", "F3": "Clara", "F4": "Beatriz", "F5": "Helena",
+    "M1": "Joao", "M2": "Ricardo", "M3": "Jose", "M4": "Pedro", "M5": "Carlos",
+}
+
+
+def get_supertonic_voices() -> list[str]:
+    """Vozes Supertonic3 com nome de pessoa (F*=feminina, M*=masculina)."""
+    try:
+        eng = _supertonic_engine()
+        styles = sorted(p.stem for p in (eng.ASSETS / "voice_styles").glob("*.json"))
+    except Exception as e:
+        logger.warning(f"supertonic voices unavailable: {e}")
+        styles = ["F1"]
+    voices = []
+    for s in styles:
+        genero = "Female" if s.startswith("F") else "Male"
+        nome = _SUPERTONIC_NOMES.get(s, s)
+        rotulo = f"{nome} (voz {s})"
+        voices.append(f"supertonic:{s}:{rotulo}-{genero}")
+    return voices
+
+
+class _SuperTonicSubs:
+    """Objeto minimo compativel com o consumidor de tts(): offset p/ duracao,
+    subs vazio (legendas vem da rota whisper) e caminho do audio real."""
+
+    def __init__(self, duration: float, wav_file: str):
+        self.subs = []
+        self.offset = [(0, int(duration * 10000000))]
+        self._actual_audio_file = wav_file
+
+
+def supertonic_tts(text: str, voice_name: str, voice_rate: float,
+                   voice_file: str, voice_volume: float = 1.0):
+    import wave
+    estilo = voice_name.split(":")[1] if voice_name.count(":") >= 1 else "F1"
+    wav_tmp = voice_file + ".supertonic.wav"
+    try:
+        eng = _supertonic_engine()
+    except Exception as e:
+        logger.error(f"Supertonic3 engine indisponivel: {e}")
+        return None
+    if not eng.disponivel():
+        logger.error("Supertonic3 nao instalado (venv/onnx ausentes)")
+        return None
+    speed = float(voice_rate) if voice_rate and voice_rate > 0 else 1.0
+    try:
+        r = eng.gerar_narracao(text, wav_tmp, voz=estilo,
+                               velocidade=speed, idioma="pt")
+    except Exception as e:
+        logger.error(f"Supertonic3 falhou: {e}")
+        return None
+    if not (r and r.get("success")):
+        logger.error(f"Supertonic3 erro: {r}")
+        return None
+    dur = 0.0
+    try:
+        with wave.open(wav_tmp, "rb") as w:
+            dur = w.getnframes() / float(w.getframerate())
+    except Exception as e:
+        logger.warning(f"supertonic duracao nao lida: {e}")
+    logger.info(f"Supertonic3 ok: {estilo} -> {wav_tmp} ({dur:.1f}s)")
+    return _SuperTonicSubs(dur, wav_tmp)

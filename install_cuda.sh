@@ -1,8 +1,8 @@
 #!/bin/bash
-# MoneyPrinterTurbo CUDA Installation Script
+# FreeDarkStudio CUDA Installation Script
 # Installs complete CUDA 12.x ecosystem with dual cuDNN support
 
-echo "🚀 Installing MoneyPrinterTurbo CUDA Dependencies"
+echo "🚀 Installing FreeDarkStudio CUDA Dependencies"
 echo "================================================="
 
 # Check if conda is available
@@ -12,11 +12,11 @@ if ! command -v conda &> /dev/null; then
 fi
 
 # Activate environment (if exists)
-if conda info --envs | grep -q "MoneyPrinterTurbo"; then
-    echo "📦 Activating existing MoneyPrinterTurbo environment..."
-    source activate MoneyPrinterTurbo
+if conda info --envs | grep -q "FreeDarkStudio"; then
+    echo "📦 Activating existing FreeDarkStudio environment..."
+    source activate FreeDarkStudio
 else
-    echo "❌ MoneyPrinterTurbo environment not found."
+    echo "❌ FreeDarkStudio environment not found."
     echo "Please create it first with: conda env create -f environment.yml"
     exit 1
 fi
